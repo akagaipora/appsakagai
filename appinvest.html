@@ -1,0 +1,1539 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investir.app | Controle de Investimentos Pessoal</title>
+    <!-- Configuração do PWA - Adicione o manifest para torná-lo instalável -->
+    <!-- <link rel="manifest" href="/manifest.json"> -->
+    <!-- Carregamento do Tailwind CSS para Estilização Responsiva e Moderna -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fontes (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Bibliotecas de Terceiros -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.11/dayjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
+    <style>
+        :root { font-family: 'Inter', sans-serif; }
+        /* Estilos do Modo Escuro */
+        .dark body { backgrou        .dark body { background-color: #1e293b; color: #f8fafc; }
+        nd-color: #1e293b; color: #f8fafc; }
+        .dark .card { background-color: #334155; border-color: #475569; }
+        .dark input, .dark select, .dark button:not(.btn-primary), .dark textarea { background-color: #475569; border-color: #64748b; color: #f8fafc; }
+        .dark .text-gray-600 { color: #cbd5e1; }
+        /* Estilo para a Tabela */
+        .sticky-header th { position: sticky; top: 0; background-color: inherit; z-index: 10; }
+        /* Estilo para o Menu Lateral (PWA feel) */
+        @media (max-width: 768px) {
+            .mobile-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background-color: var(--bg-color, #f8fafc); border-top: 1px solid #e2e8f0; }
+            .dark .mobile-nav { background-color: #334155; border-top: 1px solid #475569; }
+            .mobile-nav button { flex-grow: 1; padding: 0.75rem 0; }
+            /* Ajuste de fonte e padding para a tabela em mobile */
+            .portfolio-table th, .portfolio-table td { font-size: 0.75rem; padding-left: 0.5rem; padding-right: 0.5rem; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 transition-colors duration-300 min-h-screen">
+
+    <!-- Container Principal do App -->
+    <div id="app-container" class="max-w-7xl mx-auto p-4 md:p-8 mb-16 md:mb-0">
+
+        <!-- Cabeçalho (Fixo no Topo para Modo Desktop) -->
+        <header class="flex justify-between items-center mb-8 border-b pb-4 dark:border-gray-700">
+            <h1 class="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">Investir.app</h1>
+            <div class="flex items-center space-x-4">
+                <p id="alert-status" class="text-sm px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 hidden font-semibold">🔔 Alertas Ativos</p>
+                <!-- Toggle Modo Claro/Escuro -->
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition duration-150" aria-label="Toggle tema">
+                    <!-- Icone de Sol (Claro) / Lua (Escuro) -->
+                    <svg id="sun-icon" class="w-6 h-6 hidden text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <svg id="moon-icon" class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Navegação (Desktop) -->
+        <nav id="desktop-nav" class="hidden md:flex mb-8 space-x-2">
+            <button data-section="dashboard" class="nav-button bg-indigo-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-600 transition duration-150">📊 Painel</button>
+            <button data-section="portfolio" class="nav-button text-gray-600 dark:text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition duration-150">💼 Carteira</button>
+            <button data-section="settings" class="nav-button text-gray-600 dark:text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition duration-150">⚙️ Configurações</button>
+        </nav>
+
+        <!-- Seções do Conteúdo -->
+        <main id="content-area">
+            <!-- 1. PAINEL (DASHBOARD) -->
+            <section id="dashboard" class="app-section">
+                <h2 class="text-2xl font-bold mb-6 text-indigo-600 dark:text-indigo-400">📊 Painel de Controle</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Card: Valor Atual -->
+                    <div class="card p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Valor Atual da Carteira</p>
+                        <p id="total-current-value" class="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">R$ 0,00</p>
+                    </div>
+
+                    <!-- Card: Lucro/Prejuízo Total -->
+                    <div class="card p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Lucro/Prejuízo Total</p>
+                        <p id="total-profit-loss" class="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">R$ 0,00 (0.00%)</p>
+                    </div>
+
+                    <!-- Card: Valor Investido -->
+                    <div class="card p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Valor Investido</p>
+                        <p id="total-invested" class="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">R$ 0,00</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Gráfico: Distribuição por Tipo de Ativo -->
+                    <div class="card p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Distribuição da Carteira</h3>
+                        <canvas id="assetDistributionChart"></canvas>
+                    </div>
+
+                    <!-- Relatório: Totais por Classe e Comparativos -->
+                    <div class="card p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Total por Classe</h3>
+                        <ul class="mt-4 space-y-3">
+                            <li class="flex justify-between border-b pb-2 dark:border-gray-700 text-sm"><span class="font-medium">Renda Fixa (CDB/RDB):</span> <span id="total-fixed-income" class="font-semibold text-indigo-500">R$ 0,00</span></li>
+                            <li class="flex justify-between border-b pb-2 dark:border-gray-700 text-sm"><span class="font-medium">Criptomoedas:</span> <span id="total-crypto" class="font-semibold text-yellow-600 dark:text-yellow-400">R$ 0,00</span></li>
+                            <li class="flex justify-between border-b pb-2 dark:border-gray-700 text-sm"><span class="font-medium">Renda Variável (Ações/FIIs/ETFs):</span> <span id="total-variable-income" class="font-semibold text-green-500">R$ 0,00</span></li>
+                            
+                        </ul>
+                        <h3 class="text-lg font-semibold mt-6 mb-4 text-gray-900 dark:text-white">Configurações Atuais</h3>
+                        <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                            <li class="flex justify-between"><span class="font-medium">Taxa CDI (Mock):</span> <span id="cdi-rate-display" class="font-semibold text-indigo-500">0.00% a.a.</span></li>
+                            <li class="flex justify-between"><span class="font-medium">Cotação USD/BRL (Mock):</span> <span id="usd-brl-display" class="font-semibold text-green-500">R$ 0.00</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. CARTEIRA (PORTFOLIO) -->
+            <section id="portfolio" class="app-section hidden">
+                <h2 class="text-2xl font-bold mb-6 text-indigo-600 dark:text-indigo-400">💼 Minha Carteira</h2>
+
+                <!-- TABS: Registro de Operação vs. Alertas de Preço -->
+                <div class="flex mb-4 border-b border-gray-200 dark:border-gray-700">
+                    <button data-tab="operation" class="portfolio-tab text-indigo-600 dark:text-indigo-400 font-semibold py-2 px-4 border-b-2 border-indigo-600 dark:border-indigo-400 transition duration-150">
+                        Registrar Operação
+                    </button>
+                    <button data-tab="alerts" class="portfolio-tab text-gray-600 dark:text-gray-300 font-semibold py-2 px-4 hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500 transition duration-150">
+                        Alertas de Preço 🔔
+                    </button>
+                </div>
+                
+                <!-- 2A. PAINEL DE REGISTRO DE OPERAÇÕES -->
+                <div id="tab-operation" class="portfolio-tab-content">
+                    <div class="card p-6 mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Registrar Nova Operação</h3>
+                        <form id="operation-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                            <!-- Linha 1: Tipo de Operação, Classe e Ticker -->
+                            <div class="col-span-1">
+                                <label for="op-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo</label>
+                                <select id="op-type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                    <option value="COMPRA">COMPRA</option>
+                                    <option value="VENDA">VENDA</option>
+                                </select>
+                            </div>
+                            <div class="col-span-1">
+                                <label for="asset-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Classe de Ativo</label>
+                                <select id="asset-type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                    <option value="AÇÃO">Ação</option>
+                                    <option value="FII">FII</option>
+                                    <option value="BDR">BDR</option>
+                                    <option value="ETF">ETF</option>
+                                    <option value="CRIPTOMOEDA">Criptomoeda</option>
+                                    <option value="CDB">CDB</option>
+                                    <option value="RDB">RDB</option>
+                                </select>
+                            </div>
+                            <div class="col-span-1">
+                                <label for="ticker" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Símbolo/Nome</label>
+                                <input type="text" id="ticker" required placeholder="Ex: ITSA4, BTC, CDB-BancoXP" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white uppercase">
+                            </div>
+
+                            <!-- Linha 2: Campos Básicos (Comum a todos) -->
+                            <div class="col-span-1">
+                                <label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Data</label>
+                                <input type="date" id="date" required value="" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                            </div>
+                            <div class="col-span-1">
+                                <label for="quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantidade/Valor Principal</label>
+                                <input type="number" id="quantity" required min="0.00000001" step="any" placeholder="Ex: 100.5 (Ações) ou 5000 (CDB)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                            </div>
+                            <div class="col-span-1">
+                                <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Preço Unitário (R$)</label>
+                                <input type="number" id="price" required min="0.00000001" step="any" placeholder="Ex: 12.50 (Ações) ou 1 (Renda Fixa)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                            </div>
+                            
+                            <!-- Linha 3: CAMPOS CONDICIONAIS -->
+
+                            <!-- Container de Campos de Cripto -->
+                            <div id="crypto-fields" class="col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 hidden">
+                                <div class="col-span-1">
+                                    <label for="crypto-network" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Rede (Network)</label>
+                                    <input type="text" id="crypto-network" placeholder="Ex: ERC20, Polygon, Solana" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                </div>
+                                <div class="col-span-1">
+                                    <label for="crypto-pair" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Par de Cotação</label>
+                                    <input type="text" id="crypto-pair" placeholder="Ex: USD/BRL" value="BRL" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                </div>
+                            </div>
+
+                            <!-- Container de Campos de Renda Fixa -->
+                            <div id="fixed-income-fields" class="col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 hidden">
+                                <div class="col-span-1">
+                                    <label for="fi-rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Taxa (% CDI)</label>
+                                    <input type="number" id="fi-rate" min="1" step="0.01" placeholder="Ex: 105 (para 105% CDI)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                </div>
+                                <div class="col-span-1">
+                                    <label for="fi-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Renda Fixa</label>
+                                    <select id="fi-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                        <option value="POS_FIXADO">Pós-fixado (Ex: % CDI)</option>
+                                        <option value="PRE_FIXADO">Pré-fixado</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-1">
+                                    <label for="fi-maturity" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Vencimento</label>
+                                    <input type="date" id="fi-maturity" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                </div>
+                            </div>
+
+                            <!-- Linha 4: Corretagem, Taxas e Observações -->
+                            <div id="market-fees" class="col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="col-span-1">
+                                    <label for="brokerage" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Corretagem (R$)</label>
+                                    <input type="number" id="brokerage" min="0" step="any" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                </div>
+                                <div class="col-span-1">
+                                    <label for="taxes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Taxas/Emolumentos (R$)</label>
+                                    <input type="number" id="taxes" min="0" step="any" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                </div>
+                                <div class="col-span-1">
+                                    <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Observações</label>
+                                    <textarea id="notes" rows="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="col-span-3 flex justify-end">
+                                <button type="submit" class="btn-primary bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:bg-indigo-700 transition duration-150">
+                                    Salvar Operação
+                                </button>
+                            </div>
+                        </form>
+                        <p id="form-message" class="mt-4 text-sm"></p>
+                    </div>
+                </div>
+
+                <!-- 2B. PAINEL DE ALERTAS DE PREÇO -->
+                <div id="tab-alerts" class="portfolio-tab-content hidden">
+                     <div class="card p-6 mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Criar Novo Alerta de Preço</h3>
+                        <form id="alert-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="col-span-1">
+                                <label for="alert-ticker" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Símbolo/Ticker</label>
+                                <input type="text" id="alert-ticker" required placeholder="Ex: ITSA4, BTC" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white uppercase">
+                            </div>
+                            <div class="col-span-1">
+                                <label for="alert-condition" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Condição</label>
+                                <select id="alert-condition" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                    <option value="ACIMA">Preço ACIMA de</option>
+                                    <option value="ABAIXO">Preço ABAIXO de</option>
+                                </select>
+                            </div>
+                            <div class="col-span-1">
+                                <label for="alert-price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Preço Alvo (R$)</label>
+                                <input type="number" id="alert-price" required min="0.01" step="any" placeholder="Ex: 15.00" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                            </div>
+                            <div class="col-span-3 flex justify-end">
+                                <button type="submit" class="bg-yellow-500 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:bg-yellow-600 transition duration-150">
+                                    Criar Alerta
+                                </button>
+                            </div>
+                        </form>
+                        <p id="alert-form-message" class="mt-4 text-sm"></p>
+                    </div>
+
+                    <div class="card p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Alertas Ativos</h3>
+                        <ul id="active-alerts-list" class="space-y-3">
+                            <li class="text-gray-500 dark:text-gray-400">Nenhum alerta de preço ativo.</li>
+                        </ul>
+                    </div>
+                </div>
+
+
+                <!-- Tabela de Posições Consolidadas (Compartilhada) -->
+                <div class="card p-4 md:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-x-auto h-[40vh] md:h-96 relative mt-8">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Posições Consolidadas</h3>
+                    <div class="overflow-x-auto">
+                        <table class="portfolio-table min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                            <thead class="sticky-header">
+                                <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                                    <th class="py-3 px-2">Ativo</th>
+                                    <th class="py-3 px-2">Preço Médio</th>
+                                    <th class="py-3 px-2">Cotação Atual</th>
+                                    <th class="py-3 px-2">Qtd. Total</th>
+                                    <th class="py-3 px-2">Investido (R$)</th>
+                                    <th class="py-3 px-2">Atual (R$)</th>
+                                    <th class="py-3 px-2">Lucro/Prejuízo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="portfolio-table-body" class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- Linhas de Ativos serão inseridas aqui via JS -->
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-gray-500 dark:text-gray-400">Nenhuma posição aberta. Registre uma operação!</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Lista de Operações (Compartilhada) -->
+                <div class="card p-6 mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Histórico de Operações (Últimas 5)</h3>
+                    <ul id="operations-list" class="space-y-3">
+                        <li class="text-gray-500 dark:text-gray-400">Nenhum histórico de operações.</li>
+                    </ul>
+                </div>
+
+            </section>
+
+            <!-- 3. CONFIGURAÇÕES (SETTINGS) -->
+            <section id="settings" class="app-section hidden">
+                <h2 class="text-2xl font-bold mb-6 text-indigo-600 dark:text-indigo-400">⚙️ Configurações e Dados</h2>
+
+                <div class="space-y-8">
+                    <!-- Configurações de Cotações (APIs Mockadas) -->
+                    <div class="card p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Configuração de APIs e Taxas (Mock)</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm">
+                            Abaixo você pode configurar as taxas base usadas no cálculo. Na produção real, estas seriam atualizadas via API.
+                        </p>
+                        <form id="api-config-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="col-span-1">
+                                <label for="cdi-rate-config" class="block text-sm font-medium text-gray-700 dark:text-gray-300">CDI Anual (Mock %)</label>
+                                <input type="number" id="cdi-rate-config" step="0.01" min="0" value="10.00" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                            </div>
+                            <div class="col-span-1">
+                                <label for="usd-brl-config" class="block text-sm font-medium text-gray-700 dark:text-gray-300">USD/BRL (Mock R$)</label>
+                                <input type="number" id="usd-brl-config" step="0.0001" min="0.01" value="5.2500" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                            </div>
+                            <div class="col-span-1 flex items-end">
+                                <button type="submit" class="w-full bg-indigo-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-600 transition duration-150">
+                                    Salvar Configurações
+                                </button>
+                            </div>
+                        </form>
+                        <p id="api-config-message" class="mt-4 text-sm text-green-500"></p>
+                    </div>
+
+                    <!-- Gerenciamento de Dados -->
+                    <div class="card p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Importar / Exportar Dados</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <!-- Exportar JSON -->
+                            <button id="export-json-btn" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 px-2 md:px-4 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-150 text-sm">
+                                Exportar JSON
+                            </button>
+                            <!-- Importar JSON -->
+                            <label for="import-json-file" class="bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-indigo-200 py-2 px-2 md:px-4 rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-700 transition duration-150 cursor-pointer text-center font-medium text-sm">
+                                Importar JSON
+                                <input type="file" id="import-json-file" accept=".json" class="hidden">
+                            </label>
+                            <!-- Exportar CSV -->
+                            <button id="export-csv-btn" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 px-2 md:px-4 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-150 text-sm">
+                                Exportar CSV
+                            </button>
+                            <!-- Limpar Dados -->
+                            <button id="clear-data-btn" class="bg-red-500 text-white py-2 px-2 md:px-4 rounded-lg hover:bg-red-600 transition duration-150 text-sm">
+                                Limpar Tudo
+                            </button>
+                        </div>
+                        <p id="data-status-message" class="mt-4 text-sm text-gray-600 dark:text-gray-400"></p>
+                    </div>
+
+                    <!-- Sobre o App -->
+                    <div class="card p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Sobre</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm">
+                            Investir.app - Versão 3.0 (Fase 3: APIs e Alertas). Dados 100% locais e privados, armazenados via IndexedDB.
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Navegação Mobile (PWA Feel) -->
+        <nav id="mobile-nav" class="mobile-nav md:hidden flex justify-around shadow-2xl py-2">
+            <button data-section="dashboard" class="nav-button flex flex-col items-center text-indigo-600 dark:text-indigo-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-2v2m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span class="text-xs">Painel</span>
+            </button>
+            <button data-section="portfolio" class="nav-button flex flex-col items-center text-gray-500 dark:text-gray-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 16v4m-4 0h4m-4-4h4m6-6h-6m-6 0H6m2-6h8a2 2 0 012 2v2a2 2 0 01-2 2H8a2 2 0 01-2-2V6a2 2 0 012-2z"></path></svg>
+                <span class="text-xs">Carteira</span>
+            </button>
+            <button data-section="settings" class="nav-button flex flex-col items-center text-gray-500 dark:text-gray-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.82 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.82 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.82-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.82-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <span class="text-xs">Config</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        // === VARIÁVEIS GLOBAIS E INICIALIZAÇÃO ===
+        const DB_NAME = 'InvestimentosDB';
+        const DB_VERSION = 2; // Aumentar a versão para criar a nova store de alertas
+        const STORE_OPERATIONS = 'operations';
+        const STORE_ALERTS = 'price_alerts'; // Nova store
+        const STORE_CONFIG = 'config'; // Nova store
+        let db;
+        let chartInstance = null; 
+
+        // Configurações de Taxa (Padrões iniciais)
+        let APP_CONFIG = {
+            cdiRate: 0.10, // 10.00% a.a.
+            usdToBRL: 5.25, // R$ 5.25
+        };
+        
+        // Formatação de Moeda
+        numeral.register('locale', 'pt-br', {
+            delimiters: { thousands: '.', decimal: ',' },
+            abbreviations: { thousand: 'mil', million: 'mi', billion: 'bi', trillion: 'tri' },
+            currency: { symbol: 'R$' }
+        });
+        numeral.locale('pt-br');
+
+        const formatCurrency = (value) => numeral(value).format('$ 0,0.00');
+        const formatPercent = (value) => numeral(value / 100).format('0.00%');
+        const formatDecimal = (value) => numeral(value).format('0,0.[00000]');
+        const formatRate = (value) => numeral(value).format('0.00'); // Para exibir CDI
+
+        // Variável de Estado Global
+        const AppState = {
+            operations: [], 
+            quotes: {},
+            alerts: [], // Nova lista de alertas
+            portfolio: {},
+            isReady: false,
+            totalInvested: 0,
+            totalCurrentValue: 0,
+            totalProfitLoss: 0,
+            totalFixedIncome: 0,
+            totalCrypto: 0,
+            totalVariableIncome: 0,
+        };
+
+        const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+
+        // === INDEXEDDB (Armazenamento Local e Persistente) ===
+
+        const initDB = () => {
+            return new Promise((resolve, reject) => {
+                if (!window.indexedDB) {
+                    console.error("IndexedDB não é suportado.");
+                    AppState.isReady = true;
+                    resolve(null);
+                    return;
+                }
+
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_OPERATIONS)) {
+                        db.createObjectStore(STORE_OPERATIONS, { keyPath: 'id' });
+                    }
+                    // Nova Store para alertas
+                    if (!db.objectStoreNames.contains(STORE_ALERTS)) {
+                        db.createObjectStore(STORE_ALERTS, { keyPath: 'id' });
+                    }
+                    // Nova Store para configurações
+                    if (!db.objectStoreNames.contains(STORE_CONFIG)) {
+                        db.createObjectStore(STORE_CONFIG, { keyPath: 'key' });
+                    }
+                };
+
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    console.log("IndexedDB inicializado (v" + DB_VERSION + ").");
+                    AppState.isReady = true;
+                    resolve(db);
+                };
+
+                request.onerror = (event) => {
+                    console.error("Erro ao abrir IndexedDB:", event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        };
+
+        const getStore = (storeName, mode) => {
+            if (!AppState.isReady || !db) return null;
+            try {
+                const transaction = db.transaction([storeName], mode);
+                return transaction.objectStore(storeName);
+            } catch (error) {
+                 console.error(`Erro ao iniciar transação para ${storeName}:`, error);
+                 return null;
+            }
+        };
+
+        const loadDataDB = (storeName) => {
+            return new Promise((resolve, reject) => {
+                const store = getStore(storeName, 'readonly');
+                if (!store) return reject("DB não disponível.");
+
+                const request = store.getAll();
+
+                request.onsuccess = (event) => {
+                    let data = event.target.result;
+                    if (storeName === STORE_OPERATIONS) {
+                        data.sort((a, b) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf());
+                        AppState.operations = data;
+                    } else if (storeName === STORE_ALERTS) {
+                        AppState.alerts = data;
+                    } else if (storeName === STORE_CONFIG) {
+                        // Carrega configurações globais
+                        const cdiConfig = data.find(c => c.key === 'cdiRate');
+                        const usdConfig = data.find(c => c.key === 'usdToBRL');
+                        
+                        if (cdiConfig) APP_CONFIG.cdiRate = cdiConfig.value;
+                        if (usdConfig) APP_CONFIG.usdToBRL = usdConfig.value;
+                        
+                        // Atualiza a UI de Configurações
+                        document.getElementById('cdi-rate-config').value = APP_CONFIG.cdiRate * 100;
+                        document.getElementById('usd-brl-config').value = APP_CONFIG.usdToBRL;
+                    }
+                    resolve(data);
+                };
+
+                request.onerror = (event) => reject(event.target.error);
+            });
+        };
+
+        // === LÓGICA DE NEGÓCIO ===
+
+        /**
+         * Simula a busca de cotações em uma API externa (CoinGecko, Binance, Yahoo, etc.).
+         * Usa a taxa USD/BRL configurada para criptomoedas cotadas em USD.
+         */
+        const fetchQuotes = (ticker, assetType) => {
+            let basePrice;
+            const seed = ticker.length % 5;
+            let variationRange = 0.03; 
+
+            switch (assetType) {
+                case 'AÇÃO':
+                case 'BDR':
+                case 'ETF':
+                case 'FII':
+                    basePrice = (seed * 5) + 10;
+                    break;
+                case 'CRIPTOMOEDA':
+                    // Mock da cotação em USD
+                    let usdPrice = (seed * 1000) + 20000;
+                    if (ticker.toUpperCase().includes('ETH')) usdPrice = 3000;
+                    if (ticker.toUpperCase().includes('SOL')) usdPrice = 150;
+                    
+                    // Converte para BRL usando a taxa de câmbio configurada
+                    basePrice = usdPrice * APP_CONFIG.usdToBRL;
+                    variationRange = 0.10; 
+                    break;
+                default:
+                    basePrice = 1;
+                    variationRange = 0;
+            }
+
+            // Adiciona uma variação aleatória de +/- variationRange
+            const variation = (Math.random() * variationRange * 2) - variationRange;
+            const currentPrice = basePrice * (1 + variation);
+
+            return currentPrice;
+        };
+
+        /**
+         * Calcula o valor atualizado de um investimento em Renda Fixa (Pós-Fixado CDI).
+         */
+        const calculateFixedIncomeValue = (initialCost, purchaseDate, details) => {
+            const startDate = dayjs(purchaseDate);
+            const currentDate = dayjs();
+            const daysHeld = currentDate.diff(startDate, 'day');
+            
+            if (daysHeld <= 0) return initialCost;
+            
+            // Taxa Anualizada: % CDI (Ex: 105%) * CDI Configurado (10% a.a.)
+            const ratePercentCDI = details.rate / 100;
+            const annualizedRate = APP_CONFIG.cdiRate * ratePercentCDI;
+
+            const timeFactor = daysHeld / 365;
+
+            // Juros Compostos
+            const currentValue = initialCost * Math.pow((1 + annualizedRate), timeFactor);
+            
+            return currentValue;
+        };
+
+
+        /**
+         * Calcula o preço médio ponderado e consolida a carteira (Fase 3).
+         */
+        const calculatePortfolioMetrics = () => {
+            const portfolio = {};
+            const quotes = AppState.quotes;
+            
+            let totalInvested = 0;
+            let totalCurrentValue = 0;
+            let totalProfitLoss = 0;
+            
+            // Resetar totais de classe
+            AppState.totalFixedIncome = 0;
+            AppState.totalCrypto = 0;
+            AppState.totalVariableIncome = 0;
+
+            // 1. Processar todas as operações (PMP)
+            for (const op of AppState.operations) {
+                const ticker = op.ticker;
+                const cost = op.quantity * op.price + op.brokerage + op.taxes;
+
+                if (!portfolio[ticker]) {
+                    portfolio[ticker] = {
+                        ticker,
+                        type: op.assetType,
+                        quantity: 0,
+                        totalCost: 0,
+                        avgPrice: 0,
+                        currentValue: 0,
+                        profitLoss: 0,
+                        fixedIncomeDetails: op.fixedIncomeDetails || null,
+                        cryptoDetails: op.cryptoDetails || null,
+                    };
+                }
+
+                if (op.opType === 'COMPRA') {
+                    portfolio[ticker].quantity += op.quantity;
+                    portfolio[ticker].totalCost += cost;
+                } else if (op.opType === 'VENDA') {
+                    const currentAvgPrice = portfolio[ticker].quantity > 0 ? portfolio[ticker].totalCost / portfolio[ticker].quantity : 0;
+                    const costReduction = op.quantity * currentAvgPrice;
+
+                    portfolio[ticker].quantity -= op.quantity;
+                    portfolio[ticker].totalCost -= costReduction;
+
+                    if (portfolio[ticker].quantity <= 0) {
+                        portfolio[ticker].quantity = 0;
+                        portfolio[ticker].totalCost = 0;
+                    }
+                }
+
+                if (portfolio[ticker].quantity > 0) {
+                    portfolio[ticker].avgPrice = portfolio[ticker].totalCost / portfolio[ticker].quantity;
+                } else {
+                    portfolio[ticker].avgPrice = 0;
+                }
+            }
+
+            // 2. Calcular valor atual (Current Value) e P/L
+            for (const ticker in portfolio) {
+                const position = portfolio[ticker];
+                
+                if (position.quantity === 0) continue;
+
+                let currentPrice = 0;
+                let currentTotalValue = 0;
+                const isFixedIncome = position.type === 'CDB' || position.type === 'RDB';
+                
+                if (isFixedIncome) {
+                    // CÁLCULO DE RENDA FIXA
+                    currentTotalValue = calculateFixedIncomeValue(position.totalCost, AppState.operations.find(op => op.ticker === ticker && op.opType === 'COMPRA')?.date || dayjs().format('YYYY-MM-DD'), position.fixedIncomeDetails);
+                    currentPrice = currentTotalValue / position.quantity; 
+                    AppState.totalFixedIncome += currentTotalValue;
+
+                } else {
+                    // COTAÇÃO DE RENDA VARIÁVEL / CRIPTO
+                    if (!quotes[ticker] || quotes[ticker].assetType !== position.type) {
+                        quotes[ticker] = {
+                            price: fetchQuotes(ticker, position.type),
+                            assetType: position.type
+                        };
+                    }
+                    currentPrice = quotes[ticker].price;
+                    currentTotalValue = position.quantity * currentPrice;
+
+                    // Acumula totais por classe
+                    if (position.type === 'CRIPTOMOEDA') {
+                        AppState.totalCrypto += currentTotalValue;
+                    } else {
+                        AppState.totalVariableIncome += currentTotalValue;
+                    }
+                }
+                
+                // Atualizar posição e totais globais
+                position.currentPrice = currentPrice;
+                position.currentValue = currentTotalValue;
+                position.profitLoss = position.currentValue - position.totalCost;
+                position.profitLossPercent = (position.profitLoss / position.totalCost) * 100;
+                
+                totalInvested += position.totalCost;
+                totalCurrentValue += position.currentValue;
+                totalProfitLoss += position.profitLoss;
+            }
+
+            // 3. Persistir e atualizar AppState
+            AppState.portfolio = portfolio;
+            AppState.totalInvested = totalInvested;
+            AppState.totalCurrentValue = totalCurrentValue;
+            AppState.totalProfitLoss = totalProfitLoss;
+        };
+
+        /**
+         * Verifica se algum alerta de preço foi atingido.
+         */
+        const checkPriceAlerts = () => {
+            const activeAlerts = AppState.alerts.filter(a => a.status === 'ACTIVE');
+            let triggeredCount = 0;
+
+            for (const alert of activeAlerts) {
+                const ticker = alert.ticker;
+                const currentPrice = AppState.portfolio[ticker]?.currentPrice;
+                
+                if (!currentPrice) continue; 
+
+                const targetPrice = alert.targetPrice;
+                let isTriggered = false;
+
+                if (alert.condition === 'ACIMA' && currentPrice >= targetPrice) {
+                    isTriggered = true;
+                } else if (alert.condition === 'ABAIXO' && currentPrice <= targetPrice) {
+                    isTriggered = true;
+                }
+
+                if (isTriggered) {
+                    // Mudar status para 'TRIGGERED' (simulando a notificação)
+                    alert.status = 'TRIGGERED';
+                    alert.triggeredPrice = currentPrice;
+                    updateAlertDB(alert); 
+                    triggeredCount++;
+                    
+                    // Feedback visual (substituiria por notificação nativa em PWA)
+                    const msg = `🔔 ALERTA ATINGIDO! ${ticker} a ${formatCurrency(currentPrice)} (Alvo: ${alert.condition} ${formatCurrency(targetPrice)}).`;
+                    console.warn(msg);
+                }
+            }
+
+            if (triggeredCount > 0) {
+                 window.alert(`🔔 ${triggeredCount} ALERTE(S) ATINGIDO(S)! Verifique o painel de Alertas para mais detalhes.`);
+            }
+
+            return AppState.alerts.filter(a => a.status === 'ACTIVE').length;
+        };
+
+        // === RENDERIZAÇÃO DA INTERFACE (UI) ===
+
+        const renderDashboardMetrics = () => {
+            const plClass = AppState.totalProfitLoss >= 0 ? 'text-green-500' : 'text-red-500';
+            
+            document.getElementById('total-invested').textContent = formatCurrency(AppState.totalInvested);
+            document.getElementById('total-current-value').textContent = formatCurrency(AppState.totalCurrentValue);
+            
+            const totalProfitLossPercent = AppState.totalInvested > 0 ? (AppState.totalProfitLoss / AppState.totalInvested) * 100 : 0;
+            document.getElementById('total-profit-loss').innerHTML = `${formatCurrency(AppState.totalProfitLoss)} <span class="${plClass}">(${formatPercent(totalProfitLossPercent)})</span>`;
+            
+            document.getElementById('total-fixed-income').textContent = formatCurrency(AppState.totalFixedIncome);
+            document.getElementById('total-crypto').textContent = formatCurrency(AppState.totalCrypto);
+            document.getElementById('total-variable-income').textContent = formatCurrency(AppState.totalVariableIncome);
+
+            // Atualizar Configurações no Dashboard
+            document.getElementById('cdi-rate-display').textContent = `${formatRate(APP_CONFIG.cdiRate * 100)}% a.a.`;
+            document.getElementById('usd-brl-display').textContent = formatCurrency(APP_CONFIG.usdToBRL);
+        };
+
+        const renderPortfolioTable = () => {
+            const tbody = document.getElementById('portfolio-table-body');
+            tbody.innerHTML = '';
+            let hasPositions = false;
+
+            for (const ticker in AppState.portfolio) {
+                const pos = AppState.portfolio[ticker];
+
+                if (pos.quantity <= 0) continue;
+
+                hasPositions = true;
+                const plClass = pos.profitLoss >= 0 ? 'text-green-500' : 'text-red-500';
+
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-100';
+                
+                let tickerHtml = `<span class="font-bold">${pos.ticker}</span> <span class="text-xs text-indigo-500 block md:inline">(${pos.type})</span>`;
+                if (pos.fixedIncomeDetails) {
+                    tickerHtml += `<span class="block text-xs text-gray-400">@ ${pos.fixedIncomeDetails.rate}% CDI</span>`;
+                }
+
+                row.innerHTML = `
+                    <td class="py-2 px-1 md:py-3 md:px-2 text-gray-900 dark:text-white">${tickerHtml}</td>
+                    <td class="py-2 px-1 md:py-3 md:px-2">${formatCurrency(pos.avgPrice)}</td>
+                    <td class="py-2 px-1 md:py-3 md:px-2">${formatCurrency(pos.currentPrice)}</td>
+                    <td class="py-2 px-1 md:py-3 md:px-2 font-mono">${formatDecimal(pos.quantity)}</td>
+                    <td class="py-2 px-1 md:py-3 md:px-2">${formatCurrency(pos.totalCost)}</td>
+                    <td class="py-2 px-1 md:py-3 md:px-2">${formatCurrency(pos.currentValue)}</td>
+                    <td class="py-2 px-1 md:py-3 md:px-2 font-semibold ${plClass}">
+                        ${formatCurrency(pos.profitLoss)} <span class="block md:inline">(${formatPercent(pos.profitLossPercent)})</span>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            }
+
+            if (!hasPositions) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-gray-500 dark:text-gray-400">Nenhuma posição aberta. Registre uma operação!</td></tr>`;
+            }
+        };
+
+        const renderOperationsList = () => {
+            const ul = document.getElementById('operations-list');
+            ul.innerHTML = '';
+
+            if (AppState.operations.length === 0) {
+                ul.innerHTML = `<li class="text-gray-500 dark:text-gray-400">Nenhum histórico de operações.</li>`;
+                return;
+            }
+
+            AppState.operations.slice().reverse().slice(0, 5).forEach(op => {
+                const li = document.createElement('li');
+                const cost = op.quantity * op.price + op.brokerage + op.taxes; 
+                const typeClass = op.opType === 'COMPRA' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+                
+                li.className = `p-3 rounded-lg border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center ${typeClass.includes('green') ? 'dark:border-green-800' : 'dark:border-red-800'}`;
+                
+                li.innerHTML = `
+                    <div class="mb-2 md:mb-0">
+                        <span class="font-bold text-lg">${op.ticker}</span> 
+                        <span class="ml-1 md:ml-3 px-2 py-0.5 rounded-full text-xs font-semibold ${typeClass}">${op.opType} ${op.assetType}</span>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            ${formatDecimal(op.quantity)} @ ${formatCurrency(op.price)} em ${dayjs(op.date).format('DD/MM/YYYY')}
+                        </p>
+                    </div>
+                    <div class="text-left md:text-right">
+                        <p class="text-sm font-medium">Total: ${formatCurrency(cost)}</p>
+                        <button onclick="deleteOperation('${op.id}')" class="text-red-500 text-xs hover:text-red-700 mt-1">Excluir</button>
+                    </div>
+                `;
+                ul.appendChild(li);
+            });
+            if (AppState.operations.length > 5) {
+                const moreLi = document.createElement('li');
+                moreLi.className = 'text-center pt-2';
+                moreLi.innerHTML = `<button class="text-indigo-600 dark:text-indigo-400 text-sm hover:underline">Ver todas as ${AppState.operations.length} operações</button>`;
+                ul.appendChild(moreLi);
+            }
+        };
+
+        const renderActiveAlerts = () => {
+            const ul = document.getElementById('active-alerts-list');
+            ul.innerHTML = '';
+            const activeAlerts = AppState.alerts.filter(a => a.status !== 'CLEARED');
+            const statusEl = document.getElementById('alert-status');
+            
+            if (activeAlerts.length > 0) {
+                statusEl.classList.remove('hidden');
+                statusEl.textContent = `🔔 ${activeAlerts.filter(a => a.status === 'ACTIVE').length} Alertas Ativos`;
+            } else {
+                statusEl.classList.add('hidden');
+            }
+
+
+            if (activeAlerts.length === 0) {
+                ul.innerHTML = `<li class="text-gray-500 dark:text-gray-400">Nenhum alerta de preço ativo.</li>`;
+                return;
+            }
+
+            activeAlerts.forEach(alert => {
+                const li = document.createElement('li');
+                let statusClass = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+                let statusText = 'Ativo';
+                let currentPrice = AppState.portfolio[alert.ticker]?.currentPrice || 0;
+
+                if (alert.status === 'TRIGGERED') {
+                    statusClass = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+                    statusText = `ATINGIDO em ${formatCurrency(alert.triggeredPrice)}`;
+                }
+
+                li.className = `p-3 rounded-lg border flex justify-between items-center ${alert.status === 'TRIGGERED' ? 'border-red-400 dark:border-red-700' : 'border-yellow-400 dark:border-yellow-700'}`;
+                
+                li.innerHTML = `
+                    <div>
+                        <span class="font-bold text-lg">${alert.ticker}</span>
+                        <span class="ml-3 px-2 py-0.5 rounded-full text-xs font-semibold ${statusClass}">${statusText}</span>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Alvo: ${alert.condition} ${formatCurrency(alert.targetPrice)}
+                        </p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                            Cotação Atual: ${formatCurrency(currentPrice)}
+                        </p>
+                    </div>
+                    <div class="text-right flex space-x-2">
+                        <button onclick="deleteAlert('${alert.id}')" class="text-gray-500 text-xs hover:text-gray-700">Remover</button>
+                        ${alert.status === 'TRIGGERED' ? 
+                            `<button onclick="clearAlert('${alert.id}')" class="text-indigo-500 text-xs hover:text-indigo-700 font-semibold">Limpar</button>` : ''
+                        }
+                    </div>
+                `;
+                ul.appendChild(li);
+            });
+        };
+        
+        const renderAssetDistributionChart = () => {
+            const ctx = document.getElementById('assetDistributionChart').getContext('2d');
+            const dataMap = {};
+            
+            // Agrupar por tipo para o gráfico de pizza
+            for (const ticker in AppState.portfolio) {
+                const pos = AppState.portfolio[ticker];
+                if (pos.quantity > 0) {
+                    const type = pos.type;
+                    dataMap[type] = (dataMap[type] || 0) + pos.currentValue;
+                }
+            }
+
+            const labels = Object.keys(dataMap);
+            const dataValues = Object.values(dataMap);
+            const totalValue = dataValues.reduce((a, b) => a + b, 0);
+
+            const colors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#a855f7', '#64748b'];
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Distribuição da Carteira',
+                        data: dataValues.map(v => (v / totalValue) * 100), 
+                        backgroundColor: colors.slice(0, labels.length),
+                        hoverOffset: 16
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#1f2937'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    const label = context.label || '';
+                                    return `${label}: ${formatCurrency(totalValue * (value / 100))} (${numeral(value/100).format('0.0%')})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        /**
+         * Função principal de atualização de toda a UI.
+         */
+        const updateUI = async () => {
+            calculatePortfolioMetrics();
+            const activeAlertsCount = checkPriceAlerts();
+            renderDashboardMetrics();
+            renderPortfolioTable();
+            renderOperationsList();
+            renderActiveAlerts(); 
+            renderAssetDistributionChart();
+        };
+
+        // === PERSISTÊNCIA DE ALERTA E CONFIGURAÇÕES ===
+
+        const saveAlertDB = async (alert) => {
+            const store = getStore(STORE_ALERTS, 'readwrite');
+            if (!store) throw new Error("DB não disponível para alertas.");
+            const request = store.add(alert);
+            return new Promise((resolve, reject) => {
+                request.onsuccess = async () => {
+                    await loadDataDB(STORE_ALERTS);
+                    resolve();
+                };
+                request.onerror = (e) => reject(e.target.error);
+            });
+        };
+
+        const updateAlertDB = async (alert) => {
+            const store = getStore(STORE_ALERTS, 'readwrite');
+            if (!store) throw new Error("DB não disponível para alertas.");
+            const request = store.put(alert);
+            return new Promise((resolve, reject) => {
+                request.onsuccess = async () => {
+                    await loadDataDB(STORE_ALERTS);
+                    resolve();
+                };
+                request.onerror = (e) => reject(e.target.error);
+            });
+        };
+
+        const deleteAlertDB = async (id) => {
+            const store = getStore(STORE_ALERTS, 'readwrite');
+            if (!store) throw new Error("DB não disponível para alertas.");
+            const request = store.delete(id);
+            return new Promise((resolve, reject) => {
+                request.onsuccess = async () => {
+                    await loadDataDB(STORE_ALERTS);
+                    resolve();
+                };
+                request.onerror = (e) => reject(e.target.error);
+            });
+        };
+
+        const saveConfigDB = async (key, value) => {
+            const store = getStore(STORE_CONFIG, 'readwrite');
+            if (!store) throw new Error("DB não disponível para configurações.");
+            const request = store.put({ key, value });
+            return new Promise((resolve, reject) => {
+                request.onsuccess = resolve;
+                request.onerror = (e) => reject(e.target.error);
+            });
+        };
+
+        // === EVENT LISTENERS E CONTROLADORES ===
+        
+        const toggleAssetFields = () => {
+            const assetType = document.getElementById('asset-type').value;
+            const cryptoFields = document.getElementById('crypto-fields');
+            const fixedIncomeFields = document.getElementById('fixed-income-fields');
+            const marketFees = document.getElementById('market-fees');
+
+            cryptoFields.classList.add('hidden');
+            fixedIncomeFields.classList.add('hidden');
+            marketFees.classList.remove('hidden');
+
+            if (assetType === 'CRIPTOMOEDA') {
+                cryptoFields.classList.remove('hidden');
+            } else if (assetType === 'CDB' || assetType === 'RDB') {
+                fixedIncomeFields.classList.remove('hidden');
+            } 
+        };
+
+        const handleOperationSubmit = async (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const messageEl = document.getElementById('form-message');
+            messageEl.textContent = '';
+            messageEl.className = 'mt-4 text-sm';
+
+            const assetType = form.elements['asset-type'].value;
+
+            const newOperation = {
+                id: generateId(),
+                opType: form.elements['op-type'].value,
+                assetType: assetType,
+                ticker: form.elements['ticker'].value.toUpperCase(),
+                date: form.elements['date'].value || dayjs().format('YYYY-MM-DD'),
+                quantity: parseFloat(form.elements['quantity'].value),
+                price: parseFloat(form.elements['price'].value),
+                brokerage: parseFloat(form.elements['brokerage'].value) || 0,
+                taxes: parseFloat(form.elements['taxes'].value) || 0,
+                notes: form.elements['notes'].value,
+            };
+
+            if (assetType === 'CRIPTOMOEDA') {
+                newOperation.cryptoDetails = {
+                    network: document.getElementById('crypto-network').value,
+                    pair: document.getElementById('crypto-pair').value,
+                };
+            } else if (assetType === 'CDB' || assetType === 'RDB') {
+                const rate = parseFloat(document.getElementById('fi-rate').value);
+                const maturity = document.getElementById('fi-maturity').value;
+
+                if (newOperation.opType === 'COMPRA' && (!rate || !maturity)) {
+                    messageEl.textContent = 'Para CDB/RDB (Compra), a Taxa (% CDI) e o Vencimento são obrigatórios.';
+                    messageEl.classList.add('text-red-500');
+                    return;
+                }
+
+                newOperation.fixedIncomeDetails = {
+                    rate: rate,
+                    maturity: maturity,
+                    type: document.getElementById('fi-type').value
+                };
+                
+                newOperation.price = 1; 
+                newOperation.quantity = parseFloat(form.elements['quantity'].value);
+
+            } else {
+                if (newOperation.quantity <= 0 || newOperation.price <= 0) {
+                    messageEl.textContent = 'Quantidade e Preço devem ser maiores que zero.';
+                    messageEl.classList.add('text-red-500');
+                    return;
+                }
+            }
+
+
+            try {
+                const opStore = getStore(STORE_OPERATIONS, 'readwrite');
+                if (!opStore) throw new Error("DB indisponível.");
+                
+                const addRequest = opStore.add(newOperation);
+
+                addRequest.onsuccess = async () => {
+                    await loadDataDB(STORE_OPERATIONS);
+                    updateUI();
+                    form.reset();
+                    document.getElementById('date').value = dayjs().format('YYYY-MM-DD'); 
+                    toggleAssetFields(); // Esconder campos adicionais
+                    messageEl.textContent = 'Operação registrada com sucesso!';
+                    messageEl.classList.remove('text-red-500');
+                    messageEl.classList.add('text-green-500');
+                };
+
+                addRequest.onerror = (e) => {
+                    console.error("Erro ao salvar operação:", e.target.error);
+                    messageEl.textContent = 'Erro ao salvar operação. Verifique o console.';
+                    messageEl.classList.add('text-red-500');
+                };
+            } catch (error) {
+                console.error("Erro ao processar operação:", error);
+                messageEl.textContent = 'Erro ao processar operação. Verifique o console.';
+                messageEl.classList.add('text-red-500');
+            }
+        };
+
+        const deleteOperation = async (id) => {
+            if (!window.confirm("Tem certeza que deseja excluir esta operação?")) return;
+
+            const store = getStore(STORE_OPERATIONS, 'readwrite');
+            if (!store) return console.error("DB não disponível.");
+
+            const request = store.delete(id);
+
+            request.onsuccess = async () => {
+                await loadDataDB(STORE_OPERATIONS);
+                updateUI();
+            };
+
+            request.onerror = (event) => console.error("Erro ao excluir operação:", event.target.error);
+        };
+        window.deleteOperation = deleteOperation;
+
+        const handleAlertSubmit = async (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const messageEl = document.getElementById('alert-form-message');
+            messageEl.textContent = '';
+
+            const newAlert = {
+                id: generateId(),
+                ticker: form.elements['alert-ticker'].value.toUpperCase(),
+                condition: form.elements['alert-condition'].value,
+                targetPrice: parseFloat(form.elements['alert-price'].value),
+                status: 'ACTIVE', // ACTIVE, TRIGGERED, CLEARED
+                creationDate: dayjs().toISOString(),
+                triggeredPrice: null,
+            };
+
+            if (newAlert.targetPrice <= 0) {
+                messageEl.textContent = 'O preço alvo deve ser maior que zero.';
+                messageEl.classList.add('text-red-500');
+                return;
+            }
+
+            try {
+                await saveAlertDB(newAlert);
+                updateUI();
+                form.reset();
+                messageEl.textContent = `Alerta para ${newAlert.ticker} criado com sucesso!`;
+                messageEl.classList.remove('text-red-500');
+                messageEl.classList.add('text-green-500');
+            } catch (error) {
+                console.error("Erro ao salvar alerta:", error);
+                messageEl.textContent = 'Erro ao salvar alerta. Verifique o console.';
+                messageEl.classList.add('text-red-500');
+            }
+        };
+
+        const deleteAlert = async (id) => {
+            if (!window.confirm("Tem certeza que deseja remover este alerta?")) return;
+            try {
+                await deleteAlertDB(id);
+                updateUI();
+            } catch (error) {
+                console.error("Erro ao remover alerta:", error);
+            }
+        };
+        window.deleteAlert = deleteAlert;
+
+        const clearAlert = async (id) => {
+            const alert = AppState.alerts.find(a => a.id === id);
+            if (alert) {
+                alert.status = 'CLEARED';
+                try {
+                    await updateAlertDB(alert);
+                    updateUI();
+                } catch (error) {
+                    console.error("Erro ao limpar alerta:", error);
+                }
+            }
+        };
+        window.clearAlert = clearAlert;
+
+
+        const handleApiConfigSubmit = async (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const messageEl = document.getElementById('api-config-message');
+            messageEl.textContent = '';
+
+            const cdiRate = parseFloat(form.elements['cdi-rate-config'].value) / 100;
+            const usdToBRL = parseFloat(form.elements['usd-brl-config'].value);
+
+            if (cdiRate < 0 || usdToBRL <= 0) {
+                messageEl.textContent = 'Valores inválidos para CDI ou USD/BRL.';
+                messageEl.classList.add('text-red-500');
+                return;
+            }
+
+            try {
+                await saveConfigDB('cdiRate', cdiRate);
+                await saveConfigDB('usdToBRL', usdToBRL);
+                
+                APP_CONFIG.cdiRate = cdiRate;
+                APP_CONFIG.usdToBRL = usdToBRL;
+
+                updateUI();
+                messageEl.textContent = 'Configurações salvas com sucesso!';
+                messageEl.classList.remove('text-red-500');
+                messageEl.classList.add('text-green-500');
+
+            } catch (error) {
+                console.error("Erro ao salvar configurações:", error);
+                messageEl.textContent = 'Erro ao salvar configurações.';
+                messageEl.classList.add('text-red-500');
+            }
+        };
+
+        const setupTabs = () => {
+            const tabs = document.querySelectorAll('.portfolio-tab');
+            const contents = document.querySelectorAll('.portfolio-tab-content');
+
+            const switchTab = (tabId) => {
+                tabs.forEach(tab => {
+                    tab.classList.remove('border-indigo-600', 'dark:border-indigo-400', 'text-indigo-600', 'dark:text-indigo-400');
+                    tab.classList.add('border-transparent', 'text-gray-600', 'dark:text-gray-300');
+                });
+                
+                const activeTab = document.querySelector(`.portfolio-tab[data-tab="${tabId}"]`);
+                if(activeTab) {
+                    activeTab.classList.add('border-indigo-600', 'dark:border-indigo-400', 'text-indigo-600', 'dark:text-indigo-400');
+                    activeTab.classList.remove('border-transparent', 'text-gray-600', 'dark:text-gray-300', 'hover:border-gray-400', 'dark:hover:border-gray-500');
+                }
+
+                contents.forEach(content => {
+                    content.classList.add('hidden');
+                    if (content.id === `tab-${tabId}`) {
+                        content.classList.remove('hidden');
+                    }
+                });
+            };
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    switchTab(e.target.getAttribute('data-tab'));
+                });
+            });
+
+            // Iniciar na aba de Operação
+            switchTab('operation');
+        };
+
+
+        // === INICIALIZAÇÃO GERAL ===
+
+        window.addEventListener('load', async () => {
+            // 1. Configurar o formulário de data padrão
+            document.getElementById('date').value = dayjs().format('YYYY-MM-DD');
+
+            // 2. Configurar o Dark Mode
+            setupThemeToggle();
+            
+            // 3. Inicializar IndexedDB e carregar dados
+            try {
+                await initDB();
+                await loadDataDB(STORE_CONFIG); // Carrega configurações primeiro
+                await loadDataDB(STORE_OPERATIONS);
+                await loadDataDB(STORE_ALERTS); // Carrega alertas
+                updateUI();
+            } catch (error) {
+                console.error("Falha na inicialização do App:", error);
+            }
+
+            // 4. Configurar navegação e abas
+            setupNavigation();
+            setupTabs();
+
+            // 5. Configurar Listeners
+            document.getElementById('operation-form').addEventListener('submit', handleOperationSubmit);
+            document.getElementById('asset-type').addEventListener('change', toggleAssetFields);
+            document.getElementById('alert-form').addEventListener('submit', handleAlertSubmit);
+            document.getElementById('api-config-form').addEventListener('submit', handleApiConfigSubmit);
+
+            document.getElementById('export-json-btn').addEventListener('click', exportJSON);
+            document.getElementById('export-csv-btn').addEventListener('click', exportCSV);
+            document.getElementById('import-json-file').addEventListener('change', importJSON);
+            document.getElementById('clear-data-btn').addEventListener('click', () => clearAllDataDB(true));
+        });
+
+        // Funções de Importação/Exportação (Mantidas da Fase 2)
+        const exportJSON = () => {
+            const dataToExport = {
+                operations: AppState.operations,
+                alerts: AppState.alerts,
+                config: APP_CONFIG,
+                timestamp: dayjs().toISOString()
+            };
+            const json = JSON.stringify(dataToExport, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `investir_backup_${dayjs().format('YYYYMMDDHHmmss')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            document.getElementById('data-status-message').textContent = 'Dados exportados com sucesso!';
+        };
+
+        const exportCSV = () => {
+            if (AppState.operations.length === 0) {
+                document.getElementById('data-status-message').textContent = 'Não há operações para exportar.';
+                return;
+            }
+            
+            const headers = ["ID", "Tipo", "Classe", "Ticker", "Data", "Quantidade", "Preço Unitário", "Corretagem", "Taxas", "Observações", "RF_TaxaCDI", "RF_Vencimento", "RF_Tipo", "Crypto_Rede", "Crypto_Par"];
+            const csvRows = [
+                headers.join(';')
+            ];
+
+            AppState.operations.forEach(op => {
+                const fi = op.fixedIncomeDetails || {};
+                const crypto = op.cryptoDetails || {};
+
+                const row = [
+                    op.id,
+                    op.opType,
+                    op.assetType,
+                    op.ticker,
+                    op.date,
+                    formatDecimal(op.quantity),
+                    numeral(op.price).format('0.00000000', true), 
+                    numeral(op.brokerage).format('0.00', true),
+                    numeral(op.taxes).format('0.00', true),
+                    `"${(op.notes || '').replace(/"/g, '""')}"`,
+                    fi.rate || '',
+                    fi.maturity || '',
+                    fi.type || '',
+                    crypto.network || '',
+                    crypto.pair || ''
+                ].join(';');
+                csvRows.push(row);
+            });
+
+            const csvString = csvRows.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `investir_operacoes_${dayjs().format('YYYYMMDD')}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            document.getElementById('data-status-message').textContent = 'Operações exportadas para CSV com sucesso!';
+        };
+
+        const importJSON = (event) => {
+            const file = event.target.files[0];
+            const messageEl = document.getElementById('data-status-message');
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    const newOperations = importedData.operations || [];
+                    const newAlerts = importedData.alerts || [];
+
+                    if (newOperations.length === 0 && newAlerts.length === 0) {
+                        messageEl.textContent = 'Arquivo JSON importado, mas não contém dados válidos.';
+                        return;
+                    }
+
+                    if (!window.confirm("A importação de JSON irá substituir os dados atuais. Continuar?")) return;
+
+                    // 1. Limpar todas as stores
+                    await clearAllDataDB(false);
+
+                    // 2. Inserir Configurações
+                    if (importedData.config) {
+                        await saveConfigDB('cdiRate', importedData.config.cdiRate);
+                        await saveConfigDB('usdToBRL', importedData.config.usdToBRL);
+                    }
+
+                    // 3. Inserir Operações
+                    const opStore = getStore(STORE_OPERATIONS, 'readwrite');
+                    for (const op of newOperations) {
+                        if (!op.id) op.id = generateId(); 
+                        opStore.add(op).onerror = (e) => console.error("Erro ao importar operação:", e.target.error);
+                    }
+
+                    // 4. Inserir Alertas
+                    const alertStore = getStore(STORE_ALERTS, 'readwrite');
+                    for (const alert of newAlerts) {
+                        if (!alert.id) alert.id = generateId();
+                        alertStore.add(alert).onerror = (e) => console.error("Erro ao importar alerta:", e.target.error);
+                    }
+                    
+                    // Recarregar tudo
+                    await loadDataDB(STORE_CONFIG);
+                    await loadDataDB(STORE_OPERATIONS);
+                    await loadDataDB(STORE_ALERTS);
+                    updateUI();
+                    messageEl.textContent = `Sucesso! Importados ${newOperations.length} operações e ${newAlerts.length} alertas.`;
+
+                } catch (error) {
+                    console.error("Erro durante a importação do JSON:", error);
+                    messageEl.textContent = 'Erro ao processar arquivo JSON. Verifique o formato.';
+                } finally {
+                    document.getElementById('import-json-file').value = ''; // Limpa o input file
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        const clearAllDataDB = (prompt = true) => {
+            const messageEl = document.getElementById('data-status-message');
+            if (prompt && !window.confirm("ATENÇÃO: Isso limpará TODOS os dados (operações, alertas e configurações). Esta ação é irreversível. Deseja continuar?")) {
+                return;
+            }
+
+            return new Promise((resolve, reject) => {
+                const stores = [STORE_OPERATIONS, STORE_ALERTS, STORE_CONFIG];
+                let completed = 0;
+                
+                stores.forEach(storeName => {
+                    const store = getStore(storeName, 'readwrite');
+                    if (!store) {
+                        completed++;
+                        return;
+                    }
+
+                    const request = store.clear();
+                    request.onsuccess = () => {
+                        completed++;
+                        if (completed === stores.length) {
+                            AppState.operations = [];
+                            AppState.portfolio = {};
+                            AppState.quotes = {};
+                            AppState.alerts = [];
+                            updateUI();
+                            if(prompt) messageEl.textContent = 'Todos os dados foram limpos com sucesso!';
+                            resolve();
+                        }
+                    };
+                    request.onerror = (event) => {
+                        if(prompt) messageEl.textContent = 'Erro ao limpar dados. Verifique o console.';
+                        reject(event.target.error);
+                    };
+                });
+            });
+        };
+        
+        const setupNavigation = () => {
+            const navButtons = document.querySelectorAll('.nav-button');
+            const sections = document.querySelectorAll('.app-section');
+
+            const navigate = (sectionId) => {
+                sections.forEach(sec => {
+                    sec.classList.add('hidden');
+                    if (sec.id === sectionId) {
+                        sec.classList.remove('hidden');
+                    }
+                });
+
+                navButtons.forEach(btn => {
+                    const btnSection = btn.getAttribute('data-section');
+                    if (btnSection === sectionId) {
+                        btn.classList.add('bg-indigo-500', 'text-white', 'dark:text-white');
+                        btn.classList.remove('text-gray-600', 'dark:text-gray-300', 'hover:bg-gray-200', 'dark:hover:bg-gray-700');
+                        btn.querySelectorAll('svg, span').forEach(el => el.classList.remove('text-gray-500', 'dark:text-gray-400'));
+                        btn.querySelectorAll('svg, span').forEach(el => el.classList.add('text-indigo-600', 'dark:text-indigo-400'));
+                    } else {
+                        btn.classList.remove('bg-indigo-500', 'text-white', 'dark:text-white');
+                        btn.classList.add('text-gray-600', 'dark:text-gray-300', 'hover:bg-gray-200', 'dark:hover:bg-gray-700');
+                        btn.querySelectorAll('svg, span').forEach(el => el.classList.add('text-gray-500', 'dark:text-gray-400'));
+                        btn.querySelectorAll('svg, span').forEach(el => el.classList.remove('text-indigo-600', 'dark:text-indigo-400'));
+                    }
+                });
+            };
+
+            navButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const section = e.currentTarget.getAttribute('data-section');
+                    navigate(section);
+                });
+            });
+
+            // Re-aplicar estilo inicial
+            const initialNavButton = document.querySelector('.nav-button[data-section="dashboard"]');
+            if (initialNavButton) {
+                 initialNavButton.click();
+            }
+        };
+
+        const setupThemeToggle = () => {
+            const toggleBtn = document.getElementById('theme-toggle');
+            const htmlEl = document.documentElement;
+            const sunIcon = document.getElementById('sun-icon');
+            const moonIcon = document.getElementById('moon-icon');
+
+            const storedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            let currentTheme = storedTheme || (prefersDark ? 'dark' : 'light');
+
+            const applyTheme = (theme) => {
+                if (theme === 'dark') {
+                    htmlEl.classList.add('dark');
+                    sunIcon.classList.remove('hidden');
+                    moonIcon.classList.add('hidden');
+                } else {
+                    htmlEl.classList.remove('dark');
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                }
+                localStorage.setItem('theme', theme);
+                if (chartInstance) {
+                    renderAssetDistributionChart();
+                }
+            };
+
+            applyTheme(currentTheme);
+
+            toggleBtn.addEventListener('click', () => {
+                currentTheme = htmlEl.classList.contains('dark') ? 'light' : 'dark';
+                applyTheme(currentTheme);
+            });
+        };
+    </script>
+</body>
+</html>
