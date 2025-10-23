@@ -126,7 +126,8 @@
                 <div id="tab-operation" class="portfolio-tab-content">
                     <div class="card p-4 sm:p-6 mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
                         <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Registrar Nova Operação</h3>
-                        <form id="operation-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- CORREÇÃO: grid-cols-1 em mobile, grid-cols-3 em desktop (md:) -->
+                        <form id="operation-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
 
                             <!-- Linha 1: Tipo de Operação, Classe e Ticker -->
                             <div class="col-span-1">
@@ -170,7 +171,8 @@
                             <!-- Linha 3: CAMPOS CONDICIONAIS -->
 
                             <!-- Container de Campos de Cripto -->
-                            <div id="crypto-fields" class="col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 hidden">
+                            <!-- CORREÇÃO: grid-cols-1 em mobile, grid-cols-3 em desktop (md:) -->
+                            <div id="crypto-fields" class="col-span-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 hidden">
                                 <div class="col-span-1">
                                     <label for="crypto-network" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Rede (Network)</label>
                                     <input type="text" id="crypto-network" placeholder="Ex: ERC20, Polygon, Solana" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
@@ -182,7 +184,8 @@
                             </div>
 
                             <!-- Container de Campos de Renda Fixa -->
-                            <div id="fixed-income-fields" class="col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 hidden">
+                            <!-- CORREÇÃO: grid-cols-1 em mobile, grid-cols-3 em desktop (md:) -->
+                            <div id="fixed-income-fields" class="col-span-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 hidden">
                                 <div class="col-span-1">
                                     <label for="fi-rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Taxa (% CDI)</label>
                                     <input type="number" id="fi-rate" min="1" step="0.01" placeholder="Ex: 105 (para 105% CDI)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
@@ -201,7 +204,8 @@
                             </div>
 
                             <!-- Linha 4: Corretagem, Taxas e Observações -->
-                            <div id="market-fees" class="col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- CORREÇÃO: col-span-full para garantir que a linha ocupe o espaço total -->
+                            <div id="market-fees" class="col-span-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                                 <div class="col-span-1">
                                     <label for="brokerage" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Corretagem (R$)</label>
                                     <input type="number" id="brokerage" min="0" step="any" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
@@ -216,7 +220,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-span-3 flex justify-end">
+                            <div class="col-span-full flex justify-end mt-2">
                                 <button type="submit" class="btn-primary bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:bg-indigo-700 transition duration-150">
                                     Salvar Operação
                                 </button>
@@ -230,7 +234,7 @@
                 <div id="tab-alerts" class="portfolio-tab-content hidden">
                      <div class="card p-4 sm:p-6 mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
                         <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Criar Novo Alerta de Preço</h3>
-                        <form id="alert-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <form id="alert-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                             <div class="col-span-1">
                                 <label for="alert-ticker" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Símbolo/Ticker</label>
                                 <input type="text" id="alert-ticker" required placeholder="Ex: ITSA4, BTC" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white uppercase">
@@ -246,7 +250,7 @@
                                 <label for="alert-price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Preço Alvo (R$)</label>
                                 <input type="number" id="alert-price" required min="0.01" step="any" placeholder="Ex: 15.00" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                             </div>
-                            <div class="col-span-3 flex justify-end">
+                            <div class="col-span-full flex justify-end mt-2">
                                 <button type="submit" class="bg-yellow-500 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:bg-yellow-600 transition duration-150">
                                     Criar Alerta
                                 </button>
@@ -312,7 +316,7 @@
                         <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm">
                             Abaixo você pode configurar as taxas base usadas no cálculo. Na produção real, estas seriam atualizadas via API.
                         </p>
-                        <form id="api-config-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <form id="api-config-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                             <div class="col-span-1">
                                 <label for="cdi-rate-config" class="block text-sm font-medium text-gray-700 dark:text-gray-300">CDI Anual (Mock %)</label>
                                 <input type="number" id="cdi-rate-config" step="0.01" min="0" value="10.00" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
@@ -355,16 +359,24 @@
                         <p id="data-status-message" class="mt-4 text-sm text-gray-600 dark:text-gray-400"></p>
                     </div>
 
-                    <!-- Sobre o App -->
+                    <!-- Sobre o App (com Autoria e Direitos) -->
                     <div class="card p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
                         <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Sobre</h3>
                         <p class="text-gray-600 dark:text-gray-400 text-sm">
                             Investir.app - Versão 3.0 (Fase 3: APIs e Alertas). Dados 100% locais e privados, armazenados via IndexedDB.
                         </p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-4 pt-2 border-t dark:border-gray-700">
+                            Criado por Akagai Pora | Todos os direitos reservados &copy; 2025.
+                        </p>
                     </div>
                 </div>
             </section>
         </main>
+
+        <!-- Rodapé (Discreto) -->
+        <footer class="mt-8 pt-4 border-t dark:border-gray-700 text-center text-xs text-gray-500 dark:text-gray-400 hidden md:block">
+            Criado por Akagai Pora | Todos os direitos reservados &copy; 2025.
+        </footer>
 
         <!-- Navegação Mobile (PWA Feel) -->
         <nav id="mobile-nav" class="mobile-nav md:hidden flex justify-around shadow-2xl py-2">
@@ -1477,16 +1489,36 @@
 
                 navButtons.forEach(btn => {
                     const btnSection = btn.getAttribute('data-section');
-                    if (btnSection === sectionId) {
-                        btn.classList.add('bg-indigo-500', 'text-white', 'dark:text-white');
-                        btn.classList.remove('text-gray-600', 'dark:text-gray-300', 'hover:bg-gray-200', 'dark:hover:bg-gray-700');
-                        btn.querySelectorAll('svg, span').forEach(el => el.classList.remove('text-gray-500', 'dark:text-gray-400'));
-                        btn.querySelectorAll('svg, span').forEach(el => el.classList.add('text-indigo-600', 'dark:text-indigo-400'));
-                    } else {
-                        btn.classList.remove('bg-indigo-500', 'text-white', 'dark:text-white');
-                        btn.classList.add('text-gray-600', 'dark:text-gray-300', 'hover:bg-gray-200', 'dark:hover:bg-gray-700');
-                        btn.querySelectorAll('svg, span').forEach(el => el.classList.add('text-gray-500', 'dark:text-gray-400'));
-                        btn.querySelectorAll('svg, span').forEach(el => el.classList.remove('text-indigo-600', 'dark:text-indigo-400'));
+                    
+                    // Estilo para Mobile
+                    if (window.innerWidth <= 768) {
+                        const svg = btn.querySelector('svg');
+                        const span = btn.querySelector('span');
+
+                        // Aplica estilos internos (SVG/Span) APENAS se eles existirem (ou seja, se for um botão mobile)
+                        if (svg && span) {
+                            if (btnSection === sectionId) {
+                                svg.classList.remove('text-gray-500', 'dark:text-gray-400');
+                                svg.classList.add('text-indigo-600', 'dark:text-indigo-400');
+                                span.classList.add('text-indigo-600', 'dark:text-indigo-400');
+                                span.classList.remove('text-gray-500', 'dark:text-gray-400');
+                            } else {
+                                svg.classList.add('text-gray-500', 'dark:text-gray-400');
+                                svg.classList.remove('text-indigo-600', 'dark:text-indigo-400');
+                                span.classList.add('text-gray-500', 'dark:text-gray-400');
+                                span.classList.remove('text-indigo-600', 'dark:text-indigo-400');
+                            }
+                        }
+                    } 
+                    // Estilo para Desktop
+                    else {
+                        if (btnSection === sectionId) {
+                            btn.classList.add('bg-indigo-500', 'text-white', 'dark:text-white');
+                            btn.classList.remove('text-gray-600', 'dark:text-gray-300', 'hover:bg-gray-200', 'dark:hover:bg-gray-700');
+                        } else {
+                            btn.classList.remove('bg-indigo-500', 'text-white', 'dark:text-white');
+                            btn.classList.add('text-gray-600', 'dark:text-gray-300', 'hover:bg-gray-200', 'dark:hover:bg-gray-700');
+                        }
                     }
                 });
             };
@@ -1499,10 +1531,7 @@
             });
 
             // Re-aplicar estilo inicial
-            const initialNavButton = document.querySelector('.nav-button[data-section="dashboard"]');
-            if (initialNavButton) {
-                 initialNavButton.click();
-            }
+            navigate('dashboard');
         };
 
         const setupThemeToggle = () => {
